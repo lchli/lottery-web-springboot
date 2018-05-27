@@ -64,7 +64,7 @@ public class FileRes {
 
             response.status = BaseReponse.RESPCODE_SUCCESS;
 
-            response.data = String.format("http://%s/file/download/%s", Constants.HOST, id.toString());
+            response.data = String.format("%s/file/download/%s", Constants.HOST, id.toString());
 
         } catch (Throwable e) {
             e.printStackTrace();
