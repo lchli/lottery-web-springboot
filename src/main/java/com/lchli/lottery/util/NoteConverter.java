@@ -46,10 +46,10 @@ public final class NoteConverter {
                 }
                 return String.format("<p>%s</p>", text);
             case "img":
-                return String.format("<br><img src=\"%s\"/>",jsonObject.optString("path"));
+                return String.format("<br><img src=\"%s\"/>", jsonObject.optString("path"));
 
             case "audio":
-                return String.format("<br><audio controls><source src=\"%s\" type=\"audio/mpeg\"> </audio>", jsonObject.optString("path"));
+                return String.format("<br><br><audio controls><source src=\"%s\" type=\"audio/mpeg\"> </audio><br>", jsonObject.optString("path"));
 
             case "video":
                 return String.format("<br><video controls><source src=\"%s\" type=\"video/mp4\"> </video>", jsonObject.optString("path"));

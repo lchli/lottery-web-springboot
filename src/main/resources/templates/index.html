@@ -2,6 +2,8 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <script src="http://api.html5media.info/1.1.8/html5media.min.js"></script>
+
     <style type="text/css">
         img {
             width: 100%;
@@ -9,7 +11,7 @@
 
         }
 
-        audio{
+        audio {
             height: 100%;
             width: 100%;
 
@@ -29,6 +31,17 @@
             padding: 5px;
         }
 
+        .qrcode_text {
+            color: crimson;
+            font-style: italic;
+        }
+
+        .qr_img {
+            height: 50%;
+            width: 50%;
+            margin: 0 auto;
+        }
+
     </style>
 
     <title th:text="${note.title}">首页</title>
@@ -38,6 +51,15 @@
 <body>
 
 <span th:utext="${note.content}"></span>
+
+<br>
+<br>
+<br>
+<p class="qrcode_text">扫描下方二维码下载App制作笔记：</p>
+
+<div style="text-align: center; ">
+    <img class="qr_img" src="/static/apk_qrcode.png"/>
+</div>
 
 </body>
 </html>
