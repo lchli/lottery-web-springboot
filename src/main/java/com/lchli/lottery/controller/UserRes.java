@@ -7,6 +7,7 @@ import com.lchli.lottery.repo.UserRepo;
 import com.lchli.lottery.util.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -17,8 +18,12 @@ public class UserRes {
     UserRepo userRepo;
 
 
-    @PostMapping(value = "/register",produces = {MediaType.APPLICATION_JSON_VALUE},consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
-    public UserResponse register(@RequestParam("userName") String name, @RequestParam("userPwd") String pwd) {
+    @PostMapping(value = "/register", produces = {MediaType.APPLICATION_JSON_VALUE}, consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
+    public UserResponse register(@RequestParam(value = "userName", required = false) String name,
+                                 @RequestParam(value = "userPwd", required = false) String pwd,
+                                 @RequestParam(value = "userHeadUrl", required = false) String userHeadUrl,
+                                 @RequestParam(value = "userContact", required = false) String userContact
+    ) {
 
         UserResponse response = new UserResponse();
 
@@ -39,6 +44,8 @@ public class UserRes {
         user.pwd = pwd;
         user.token = Utils.uuid();
         user.uid = Utils.uuid();
+        user.headUrl = userHeadUrl;
+        user.userContact = userContact;
 
         userRepo.save(user);
 
@@ -49,9 +56,12 @@ public class UserRes {
         return response;
     }
 
-    @PostMapping(path = "/update",produces = {MediaType.APPLICATION_JSON_VALUE},consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
-    public UserResponse update(@RequestParam("userPwd") String pwd,
-                               @RequestParam("userId") String userId, @RequestParam("token") String token) {
+    @PostMapping(path = "/update", produces = {MediaType.APPLICATION_JSON_VALUE}, consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
+    public UserResponse update(@RequestParam(value = "userPwd", required = false) String pwd,
+                               @RequestParam(value = "userId", required = false) String userId,
+                               @RequestParam(value = "token", required = false) String token,
+                               @RequestParam(value = "userHeadUrl", required = false) String userHeadUrl,
+                               @RequestParam(value = "userContact", required = false) String userContact) {
 
         UserResponse response = new UserResponse();
 
@@ -75,6 +85,8 @@ public class UserRes {
 
         user.pwd = pwd;
         user.token = Utils.uuid();
+        user.headUrl = userHeadUrl;
+        user.userContact = userContact;
 
         userRepo.save(user);
 
@@ -85,8 +97,10 @@ public class UserRes {
         return response;
     }
 
-    @GetMapping(path = "/login",produces = {MediaType.APPLICATION_JSON_VALUE})
-    public UserResponse login(@RequestParam("userName") String name, @RequestParam("userPwd") String pwd) {
+    @GetMapping(path = "/login", produces = {MediaType.APPLICATION_JSON_VALUE})
+    public UserResponse login(@RequestParam(value = "userName", required = false) String name,
+                              @RequestParam(value = "userPwd", required = false) String pwd
+    ) {
         UserResponse response = new UserResponse();
 
         if (Utils.isEmpty(name) || Utils.isEmpty(pwd)) {
@@ -111,5 +125,26 @@ public class UserRes {
         return response;
     }
 
+    @GetMapping(path = "/findById", produces = {MediaType.APPLICATION_JSON_VALUE})
+    public UserResponse findById(@RequestParam(value = "userId", required = false) String userId,
+                                 @RequestParam(value = "token", required = false) String token) {
+        UserResponse response = new UserResponse();
 
+        if (StringUtils.isEmpty(userId)) {
+            response.status = BaseReponse.RESPCODE_FAILE;
+            response.message = "用户id不能为空";
+            return response;
+        }
+
+        User user = userRepo.findById(userId).orElse(null);
+        if (user == null) {
+            response.status = BaseReponse.RESPCODE_FAILE;
+            response.message = "用户名不存在";
+            return response;
+        }
+        response.status = BaseReponse.RESPCODE_SUCCESS;
+        response.data = user;
+
+        return response;
+    }
 }

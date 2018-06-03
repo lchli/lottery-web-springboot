@@ -7,8 +7,10 @@ public class NoteModel {
     public String type;
     public String content;
     public String userId;
+    public String userHeadUrl;
     public String thumbNail;
     public long updateTime;
     public String ShareUrl;
+    public boolean isPublic;
 
 }

@@ -10,4 +10,6 @@ public class User {
     public String name;
     public String pwd;
     public String token;
+    public String headUrl;
+    public String userContact;
 }
