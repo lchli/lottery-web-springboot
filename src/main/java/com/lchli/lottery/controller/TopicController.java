@@ -17,7 +17,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("topic")
-public class TopicRes {
+public class TopicController {
 
     @Autowired
     TopicRepo topicRepo;

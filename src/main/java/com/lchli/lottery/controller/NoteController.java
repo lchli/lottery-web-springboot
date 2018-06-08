@@ -4,10 +4,13 @@ package com.lchli.lottery.controller;
 import com.lchli.lottery.model.BaseReponse;
 import com.lchli.lottery.model.NoteModel;
 import com.lchli.lottery.model.QueryNoteResponse;
+import com.lchli.lottery.model.entity.Apk;
 import com.lchli.lottery.model.entity.Note;
 import com.lchli.lottery.model.entity.User;
 import com.lchli.lottery.util.Constants;
 import com.lchli.lottery.util.NoteConverter;
+import com.lchli.lottery.util.QrcodeUtil;
+import com.lchli.lottery.util.Utils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -146,9 +149,9 @@ public class NoteController {
                 noteModel.uid = note.uid;
                 noteModel.updateTime = note.updateTime;
                 noteModel.userId = note.userId;
-                noteModel.isPublic=note.isPublic;
+                noteModel.isPublic = note.isPublic;
 
-                User user = mongoTemplate.findById(note.userId+"", User.class);
+                User user = mongoTemplate.findById(note.userId + "", User.class);
                 if (user != null) {
                     noteModel.userHeadUrl = user.headUrl;
                 }
@@ -180,6 +183,19 @@ public class NoteController {
             noteModel.userId = note.userId;
         }
 
+        Query query = new Query().with(Sort.by(Sort.Direction.ASC, "version"));
+
+        Apk apk = mongoTemplate.findOne(query, Apk.class);
+
+        if (apk != null && apk.fileId != null) {
+            String apkUrl = Utils.buildFileDownloadUrl(apk.fileId);
+
+            String base64 = QrcodeUtil.getBase64QRCode(apkUrl, 400, 400);
+
+            model.addAttribute("apkBase64", "data:image/jpg;base64," + base64);
+        } else {
+            model.addAttribute("apkBase64", "");
+        }
 
         model.addAttribute("note", noteModel);
 

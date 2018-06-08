@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("user")
-public class UserRes {
+public class UserController {
 
     @Autowired
     UserRepo userRepo;

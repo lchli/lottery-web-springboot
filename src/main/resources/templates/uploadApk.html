@@ -2,7 +2,6 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <script src="http://api.html5media.info/1.1.8/html5media.min.js"></script>
 
     <style type="text/css">
         img {
@@ -44,23 +43,19 @@
 
     </style>
 
-    <title th:text="${note.title}">首页</title>
+    <title>apk发布页面</title>
 
 </head>
 
 <body>
 
-<span th:utext="${note.content}"></span>
+<form id="upload-form" action="/apk/upload" method="post" enctype="multipart/form-data">
+    　　　app名字：<input name="name" /> <br/>
+    　　　app版本：<input name="version"/> <br/>
+    　　　app文件：<input type="file" id="upload" name="file"/> <br/><br/>
+    　　　<input type="submit" value="上传apk"/>
+</form>
 
-
-<div th:if="${#strings.isEmpty(apkBase64)==false}" style="text-align: center; ">
-    <br>
-    <br>
-    <br>
-    <p class="qrcode_text">扫描下方二维码下载App制作笔记：</p>
-
-    <img class="qr_img" th:src="${apkBase64}"/>
-</div>
 
 </body>
 </html>

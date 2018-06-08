@@ -13,4 +13,10 @@ public class Utils {
     public static String uuid() {
         return UUID.randomUUID().toString();
     }
+
+    public static String buildFileDownloadUrl(String fileId) {
+
+        return String.format("%s/file/download/%s", Constants.HOST, fileId);
+
+    }
 }

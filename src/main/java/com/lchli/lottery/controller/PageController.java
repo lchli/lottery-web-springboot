@@ -8,9 +8,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class PageController {
 
     @GetMapping("/")
-    public String index(  Model model) {
+    public String index(Model model) {
         model.addAttribute("name", "welcome");
         return "index";
     }
 
+
+    @GetMapping("/apk/upload")
+    public String uploadApk() {
+        return "uploadApk";
+    }
 }
