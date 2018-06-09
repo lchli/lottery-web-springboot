@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Controller
-@RequestMapping("note")
+@RequestMapping("api/sec/note")
 public class NoteController {
 
     @Autowired

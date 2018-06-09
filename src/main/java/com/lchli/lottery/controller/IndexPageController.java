@@ -7,12 +7,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 
 @Controller
-@RequestMapping("view/public")
-public class PageController {
+public class IndexPageController {
 
-
-    @GetMapping("/apk/upload")
-    public String uploadApk() {
-        return "uploadApk";
+    @GetMapping("/")
+    public String index(Model model) {
+        model.addAttribute("name", "welcome");
+        return "index";
     }
+
 }
