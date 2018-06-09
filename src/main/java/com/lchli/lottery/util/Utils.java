@@ -16,7 +16,7 @@ public class Utils {
 
     public static String buildFileDownloadUrl(String fileId) {
 
-        return String.format("%s/file/download/%s", Constants.HOST, fileId);
+        return String.format("%s/api/public/file/download/%s", Constants.HOST, fileId);
 
     }
 }

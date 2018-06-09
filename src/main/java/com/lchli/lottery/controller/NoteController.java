@@ -4,13 +4,9 @@ package com.lchli.lottery.controller;
 import com.lchli.lottery.model.BaseReponse;
 import com.lchli.lottery.model.NoteModel;
 import com.lchli.lottery.model.QueryNoteResponse;
-import com.lchli.lottery.model.entity.Apk;
 import com.lchli.lottery.model.entity.Note;
 import com.lchli.lottery.model.entity.User;
 import com.lchli.lottery.util.Constants;
-import com.lchli.lottery.util.NoteConverter;
-import com.lchli.lottery.util.QrcodeUtil;
-import com.lchli.lottery.util.Utils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,13 +15,13 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.querydsl.QPageRequest;
-import org.springframework.data.querydsl.QSort;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,7 +43,8 @@ public class NoteController {
                                   @RequestParam(value = "userId", required = false) String userId,
                                   @RequestParam(value = "userToken", required = false) String userToken,
                                   @RequestParam(value = "uid", required = false) String uid,
-                                  @RequestParam(value = "isPublic", required = false) boolean isPublic) {
+                                  @RequestParam(value = "isPublic", required = false) boolean isPublic
+    ) {
         Note note = new Note();
         note.content = content;
         note.title = title;
@@ -62,6 +59,55 @@ public class NoteController {
 
         BaseReponse res = new BaseReponse();
         res.status = BaseReponse.RESPCODE_SUCCESS;
+
+        return res;
+    }
+
+
+    @ResponseBody
+    @PostMapping(value = "/like", produces = {MediaType.APPLICATION_JSON_VALUE}, consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
+    public BaseReponse likeNote(@RequestParam(value = "userToken", required = false) String userToken,
+                                @RequestParam(value = "noteId", required = false) String noteId,
+                                @RequestParam(value = "userId", required = false) String userId
+    ) {
+
+        BaseReponse res = new BaseReponse();
+        res.status = BaseReponse.RESPCODE_SUCCESS;
+
+        Query query = new Query();
+        query.addCriteria(Criteria.where("uid").is(userId));
+        query.addCriteria(Criteria.where("token").is(userToken));
+
+        User u = mongoTemplate.findOne(query, User.class);
+        if (u == null) {
+            res.status = BaseReponse.RESPCODE_FAILE;
+            res.message = "用户验证失败";
+            return res;
+        }
+
+
+        Note note = mongoTemplate.findById(noteId, Note.class);
+        if (note == null) {
+            res.status = BaseReponse.RESPCODE_FAILE;
+            res.message = "笔记不存在";
+            return res;
+        }
+
+        List<String> stars = note.star;
+        if (stars == null) {
+            stars = new ArrayList<>();
+        }
+
+        if (stars.contains(userId)) {
+            stars.remove(userId);
+        } else {
+            stars.add(userId);
+        }
+
+        note.star = stars;
+
+        mongoTemplate.save(note);
+
 
         return res;
     }
@@ -150,10 +196,12 @@ public class NoteController {
                 noteModel.updateTime = note.updateTime;
                 noteModel.userId = note.userId;
                 noteModel.isPublic = note.isPublic;
+                noteModel.star = note.star;
 
                 User user = mongoTemplate.findById(note.userId + "", User.class);
                 if (user != null) {
                     noteModel.userHeadUrl = user.headUrl;
+                    noteModel.userName = user.name;
                 }
 
                 res.data.add(noteModel);
@@ -165,46 +213,8 @@ public class NoteController {
     }
 
 
-    @GetMapping("/view/{uid}")
-    public String view(@PathVariable("uid") String uid, Model model) {
-
-        Note note = mongoTemplate.findById(uid, Note.class);
-        NoteModel noteModel = null;
-
-        if (note != null) {
-            noteModel = new NoteModel();
-            noteModel.content = NoteConverter.convertNoteContentToHtml(note.content);
-            noteModel.ShareUrl = buildShareUrl(uid);
-            noteModel.thumbNail = note.thumbNail;
-            noteModel.title = note.title;
-            noteModel.type = note.type;
-            noteModel.uid = note.uid;
-            noteModel.updateTime = note.updateTime;
-            noteModel.userId = note.userId;
-        }
-
-        Query query = new Query().with(Sort.by(Sort.Direction.ASC, "version"));
-
-        Apk apk = mongoTemplate.findOne(query, Apk.class);
-
-        if (apk != null && apk.fileId != null) {
-            String apkUrl = Utils.buildFileDownloadUrl(apk.fileId);
-
-            String base64 = QrcodeUtil.getBase64QRCode(apkUrl, 400, 400);
-
-            model.addAttribute("apkBase64", "data:image/jpg;base64," + base64);
-        } else {
-            model.addAttribute("apkBase64", "");
-        }
-
-        model.addAttribute("note", noteModel);
-
-        return "index";
-    }
-
-
     private static String buildShareUrl(String noteId) {
-        return String.format("%s/note/view/%s", Constants.HOST, noteId);
+        return String.format("%s/api/public/note/view/%s", Constants.HOST, noteId);
     }
 
 }

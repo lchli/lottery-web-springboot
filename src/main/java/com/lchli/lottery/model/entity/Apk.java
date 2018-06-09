@@ -8,7 +8,7 @@ public class Apk {
     @Id
     public String uid;
     public String name;
-    public String version;
+    public int version;
     public String fileId;
 
 }
