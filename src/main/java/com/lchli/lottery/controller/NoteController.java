@@ -45,22 +45,49 @@ public class NoteController {
                                   @RequestParam(value = "uid", required = false) String uid,
                                   @RequestParam(value = "isPublic", required = false) String isPublic
     ) {
-        Note note = new Note();
-        note.content = content;
-        note.title = title;
-        note.thumbNail = thumbNail;
-        note.type = type;
-        note.uid = uid;
-        note.updateTime = System.currentTimeMillis();
-        note.userId = userId;
-        note.isPublic = isPublic;
-
-        mongoTemplate.save(note);
-
         BaseReponse res = new BaseReponse();
-        res.status = BaseReponse.RESPCODE_SUCCESS;
 
-        return res;
+        try {
+
+            Query query = new Query();
+            query.addCriteria(Criteria.where("uid").is(userId));
+            query.addCriteria(Criteria.where("token").is(userToken));
+
+            User u = mongoTemplate.findOne(query, User.class);
+            if (u == null) {
+                res.status = BaseReponse.RESPCODE_FAILE;
+                res.message = "用户token无效";
+                return res;
+            }
+
+            if (StringUtils.isEmpty(content) || StringUtils.isEmpty(title) || StringUtils.isEmpty(type)) {
+                res.status = BaseReponse.RESPCODE_FAILE;
+                res.message = "参数不合法";
+                return res;
+            }
+
+            Note note = new Note();
+            note.content = content;
+            note.title = title;
+            note.thumbNail = thumbNail;
+            note.type = type;
+            note.uid = uid;//if null,mongo generate it.
+            note.updateTime = System.currentTimeMillis();
+            note.userId = userId;
+            note.isPublic = isPublic;
+
+            mongoTemplate.save(note);
+
+            res.status = BaseReponse.RESPCODE_SUCCESS;
+
+            return res;
+
+        } catch (Throwable e) {
+            e.printStackTrace();
+            res.status = BaseReponse.RESPCODE_FAILE;
+            res.message = e.getMessage();
+            return res;
+        }
     }
 
 
@@ -72,44 +99,52 @@ public class NoteController {
     ) {
 
         BaseReponse res = new BaseReponse();
-        res.status = BaseReponse.RESPCODE_SUCCESS;
 
-        Query query = new Query();
-        query.addCriteria(Criteria.where("uid").is(userId));
-        query.addCriteria(Criteria.where("token").is(userToken));
+        try {
 
-        User u = mongoTemplate.findOne(query, User.class);
-        if (u == null) {
+            Query query = new Query();
+            query.addCriteria(Criteria.where("uid").is(userId));
+            query.addCriteria(Criteria.where("token").is(userToken));
+
+            User u = mongoTemplate.findOne(query, User.class);
+            if (u == null) {
+                res.status = BaseReponse.RESPCODE_FAILE;
+                res.message = "用户验证失败";
+                return res;
+            }
+
+            Note note = mongoTemplate.findById(noteId, Note.class);
+            if (note == null) {
+                res.status = BaseReponse.RESPCODE_FAILE;
+                res.message = "笔记不存在";
+                return res;
+            }
+
+            List<String> stars = note.star;
+            if (stars == null) {
+                stars = new ArrayList<>();
+            }
+
+            if (stars.contains(userId)) {
+                stars.remove(userId);
+            } else {
+                stars.add(userId);
+            }
+
+            note.star = stars;
+
+            mongoTemplate.save(note);
+
+            res.status = BaseReponse.RESPCODE_SUCCESS;
+
+            return res;
+
+        } catch (Throwable e) {
+            e.printStackTrace();
             res.status = BaseReponse.RESPCODE_FAILE;
-            res.message = "用户验证失败";
+            res.message = e.getMessage();
             return res;
         }
-
-
-        Note note = mongoTemplate.findById(noteId, Note.class);
-        if (note == null) {
-            res.status = BaseReponse.RESPCODE_FAILE;
-            res.message = "笔记不存在";
-            return res;
-        }
-
-        List<String> stars = note.star;
-        if (stars == null) {
-            stars = new ArrayList<>();
-        }
-
-        if (stars.contains(userId)) {
-            stars.remove(userId);
-        } else {
-            stars.add(userId);
-        }
-
-        note.star = stars;
-
-        mongoTemplate.save(note);
-
-
-        return res;
     }
 
 
@@ -121,36 +156,46 @@ public class NoteController {
     ) {
 
         BaseReponse res = new BaseReponse();
-        res.status = BaseReponse.RESPCODE_SUCCESS;
 
-        Query query = new Query();
-        query.addCriteria(Criteria.where("uid").is(userId));
-        query.addCriteria(Criteria.where("token").is(userToken));
+        try {
 
-        User u = mongoTemplate.findOne(query, User.class);
-        if (u == null) {
+            Query query = new Query();
+            query.addCriteria(Criteria.where("uid").is(userId));
+            query.addCriteria(Criteria.where("token").is(userToken));
+
+            User u = mongoTemplate.findOne(query, User.class);
+            if (u == null) {
+                res.status = BaseReponse.RESPCODE_FAILE;
+                res.message = "用户验证失败";
+                return res;
+            }
+
+
+            Note note = mongoTemplate.findById(noteId, Note.class);
+            if (note == null) {
+                res.status = BaseReponse.RESPCODE_FAILE;
+                res.message = "笔记不存在";
+                return res;
+            }
+
+            if (!userId.equals(note.userId)) {
+                res.status = BaseReponse.RESPCODE_FAILE;
+                res.message = "无权限";
+                return res;
+            }
+
+            mongoTemplate.remove(note);
+
+            res.status = BaseReponse.RESPCODE_SUCCESS;
+
+            return res;
+
+        } catch (Throwable e) {
+            e.printStackTrace();
             res.status = BaseReponse.RESPCODE_FAILE;
-            res.message = "用户验证失败";
+            res.message = e.getMessage();
             return res;
         }
-
-
-        Note note = mongoTemplate.findById(noteId, Note.class);
-        if (note == null) {
-            res.status = BaseReponse.RESPCODE_FAILE;
-            res.message = "笔记不存在";
-            return res;
-        }
-
-        if (!userId.equals(note.userId)) {
-            res.status = BaseReponse.RESPCODE_FAILE;
-            res.message = "无权限";
-            return res;
-        }
-
-        mongoTemplate.remove(note);
-
-        return res;
     }
 
 
@@ -159,7 +204,6 @@ public class NoteController {
     public BaseReponse queryNote(@RequestParam(value = "title", required = false) String title,
                                  @RequestParam(value = "type", required = false) String type,
                                  @RequestParam(value = "userId", required = false) String userId,
-                                 @RequestParam(value = "userToken", required = false) String userToken,
                                  @RequestParam(value = "uid", required = false) String uid,
                                  @RequestParam(value = "page", required = false) int page,
                                  @RequestParam(value = "pageSize", required = false) int pageSize,
@@ -170,87 +214,102 @@ public class NoteController {
         res.status = BaseReponse.RESPCODE_SUCCESS;
         res.data = new ArrayList<>();
 
-        Query query = new Query();
-
-        if (!StringUtils.isEmpty(uid)) {
-            query.addCriteria(Criteria.where("uid").is(uid));
-        }
-
-        if (!StringUtils.isEmpty(userId)) {
-            query.addCriteria(Criteria.where("userId").is(userId));
-        }
-
-        if (!StringUtils.isEmpty(type)) {
-            query.addCriteria(Criteria.where("type").is(type));
-        }
-
-        if (!StringUtils.isEmpty(title)) {
-            query.addCriteria(Criteria.where("title").regex(title));
-        }
-        if (!StringUtils.isEmpty(isPublic)) {
-            query.addCriteria(Criteria.where("isPublic").is(isPublic));
-        }
-
-        List<Sort.Order> orders = new ArrayList<>();
-
         try {
-            JSONArray jsonArray = new JSONArray(sortArray);
-            for (int i = 0; i < jsonArray.length(); i++) {
-                JSONObject jobj = jsonArray.optJSONObject(i);
-                if (jobj == null) {
-                    continue;
-                }
-                String key = jobj.optString("key");
-                String val = jobj.optString("direction");
-                if (StringUtils.isEmpty(key) || StringUtils.isEmpty(val)) {
-                    continue;
-                }
 
-                Sort.Order order = Sort.Order.by(key);
-                if (val.equals("asc")) {
-                    order.with(Sort.Direction.ASC);
-                } else {
-                    order.with(Sort.Direction.DESC);
-                }
-
-                orders.add(order);
+            if (page < 0 || pageSize <= 0) {
+                res.status = BaseReponse.RESPCODE_FAILE;
+                res.message = "参数不合法";
+                return res;
             }
+
+            Query query = new Query();
+
+            if (!StringUtils.isEmpty(uid)) {
+                query.addCriteria(Criteria.where("uid").is(uid));
+            }
+
+            if (!StringUtils.isEmpty(userId)) {
+                query.addCriteria(Criteria.where("userId").is(userId));
+            }
+
+            if (!StringUtils.isEmpty(type)) {
+                query.addCriteria(Criteria.where("type").is(type));
+            }
+
+            if (!StringUtils.isEmpty(title)) {
+                query.addCriteria(Criteria.where("title").regex(title));
+            }
+            if (!StringUtils.isEmpty(isPublic)) {
+                query.addCriteria(Criteria.where("isPublic").is(isPublic));
+            }
+
+            List<Sort.Order> orders = new ArrayList<>();
+
+            try {
+                JSONArray jsonArray = new JSONArray(sortArray);
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    JSONObject jobj = jsonArray.optJSONObject(i);
+                    if (jobj == null) {
+                        continue;
+                    }
+                    String key = jobj.optString("key");
+                    String val = jobj.optString("direction");
+                    if (StringUtils.isEmpty(key) || StringUtils.isEmpty(val)) {
+                        continue;
+                    }
+
+                    Sort.Order order = Sort.Order.by(key);
+                    if (val.equals("asc")) {
+                        order.with(Sort.Direction.ASC);
+                    } else {
+                        order.with(Sort.Direction.DESC);
+                    }
+
+                    orders.add(order);
+                }
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
+
+            PageRequest pageable = PageRequest.of(page, pageSize, Sort.by(orders));
+
+            query.with(pageable);
+
+            List<Note> notes = mongoTemplate.find(query, Note.class);
+
+            if (notes != null && !notes.isEmpty()) {
+                for (Note note : notes) {
+                    NoteModel noteModel = new NoteModel();
+                    noteModel.content = note.content;
+                    noteModel.ShareUrl = buildShareUrl(note.uid);
+                    noteModel.thumbNail = note.thumbNail;
+                    noteModel.title = note.title;
+                    noteModel.type = note.type;
+                    noteModel.uid = note.uid;
+                    noteModel.updateTime = note.updateTime;
+                    noteModel.userId = note.userId;
+                    noteModel.isPublic = note.isPublic;
+                    noteModel.star = note.star;
+
+                    User user = mongoTemplate.findById(note.userId + "", User.class);
+                    if (user != null) {
+                        noteModel.userHeadUrl = user.headUrl;
+                        noteModel.userName = user.name;
+                    }
+
+                    res.data.add(noteModel);
+                }
+            }
+
+
+            return res;
+
         } catch (Throwable e) {
             e.printStackTrace();
+            res.status = BaseReponse.RESPCODE_FAILE;
+            res.message = e.getMessage();
+            return res;
         }
-
-        PageRequest pageable = PageRequest.of(page, pageSize, Sort.by(orders));
-
-        query.with(pageable);
-
-        List<Note> notes = mongoTemplate.find(query, Note.class);
-
-        if (notes != null && !notes.isEmpty()) {
-            for (Note note : notes) {
-                NoteModel noteModel = new NoteModel();
-                noteModel.content = note.content;
-                noteModel.ShareUrl = buildShareUrl(note.uid);
-                noteModel.thumbNail = note.thumbNail;
-                noteModel.title = note.title;
-                noteModel.type = note.type;
-                noteModel.uid = note.uid;
-                noteModel.updateTime = note.updateTime;
-                noteModel.userId = note.userId;
-                noteModel.isPublic = note.isPublic;
-                noteModel.star = note.star;
-
-                User user = mongoTemplate.findById(note.userId + "", User.class);
-                if (user != null) {
-                    noteModel.userHeadUrl = user.headUrl;
-                    noteModel.userName = user.name;
-                }
-
-                res.data.add(noteModel);
-            }
-        }
-
-
-        return res;
     }
 
 
