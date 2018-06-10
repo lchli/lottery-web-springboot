@@ -14,7 +14,7 @@ public class NoteModel {
     public String thumbNail;
     public long updateTime;
     public String ShareUrl;
-    public boolean isPublic;
+    public String isPublic;
     public List<String> star;
 
 }

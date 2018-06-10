@@ -43,7 +43,7 @@ public class NoteController {
                                   @RequestParam(value = "userId", required = false) String userId,
                                   @RequestParam(value = "userToken", required = false) String userToken,
                                   @RequestParam(value = "uid", required = false) String uid,
-                                  @RequestParam(value = "isPublic", required = false) boolean isPublic
+                                  @RequestParam(value = "isPublic", required = false) String isPublic
     ) {
         Note note = new Note();
         note.content = content;
@@ -114,6 +114,47 @@ public class NoteController {
 
 
     @ResponseBody
+    @PostMapping(value = "/delete", produces = {MediaType.APPLICATION_JSON_VALUE}, consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
+    public BaseReponse deleteNote(@RequestParam(value = "userToken", required = false) String userToken,
+                                  @RequestParam(value = "noteId", required = false) String noteId,
+                                  @RequestParam(value = "userId", required = false) String userId
+    ) {
+
+        BaseReponse res = new BaseReponse();
+        res.status = BaseReponse.RESPCODE_SUCCESS;
+
+        Query query = new Query();
+        query.addCriteria(Criteria.where("uid").is(userId));
+        query.addCriteria(Criteria.where("token").is(userToken));
+
+        User u = mongoTemplate.findOne(query, User.class);
+        if (u == null) {
+            res.status = BaseReponse.RESPCODE_FAILE;
+            res.message = "用户验证失败";
+            return res;
+        }
+
+
+        Note note = mongoTemplate.findById(noteId, Note.class);
+        if (note == null) {
+            res.status = BaseReponse.RESPCODE_FAILE;
+            res.message = "笔记不存在";
+            return res;
+        }
+
+        if (!userId.equals(note.userId)) {
+            res.status = BaseReponse.RESPCODE_FAILE;
+            res.message = "无权限";
+            return res;
+        }
+
+        mongoTemplate.remove(note);
+
+        return res;
+    }
+
+
+    @ResponseBody
     @PostMapping(value = "/get", produces = {MediaType.APPLICATION_JSON_VALUE}, consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
     public BaseReponse queryNote(@RequestParam(value = "title", required = false) String title,
                                  @RequestParam(value = "type", required = false) String type,
@@ -123,7 +164,7 @@ public class NoteController {
                                  @RequestParam(value = "page", required = false) int page,
                                  @RequestParam(value = "pageSize", required = false) int pageSize,
                                  @RequestParam(value = "sort", required = false) String sortArray,
-                                 @RequestParam(value = "isPublic", required = false) boolean isPublic) {
+                                 @RequestParam(value = "isPublic", required = false) String isPublic) {
 
         QueryNoteResponse res = new QueryNoteResponse();
         res.status = BaseReponse.RESPCODE_SUCCESS;

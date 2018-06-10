@@ -17,6 +17,6 @@ public class Note {
     public long updateTime;
     public List<String> star;
 
-    public boolean isPublic=false;
+    public String isPublic="0";
 
 }
