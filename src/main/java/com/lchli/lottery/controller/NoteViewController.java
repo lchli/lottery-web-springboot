@@ -26,26 +26,26 @@ public class NoteViewController {
     private MongoTemplate mongoTemplate;
 
 
-
     @GetMapping("/view/{uid}")
     public String view(@PathVariable("uid") String uid, Model model) {
 
         Note note = mongoTemplate.findById(uid, Note.class);
-        NoteModel noteModel = null;
-
-        if (note != null) {
-            noteModel = new NoteModel();
-            noteModel.content = NoteConverter.convertNoteContentToHtml(note.content);
-            noteModel.ShareUrl = buildShareUrl(uid);
-            noteModel.thumbNail = note.thumbNail;
-            noteModel.title = note.title;
-            noteModel.type = note.type;
-            noteModel.uid = note.uid;
-            noteModel.updateTime = note.updateTime;
-            noteModel.userId = note.userId;
+        if (note == null) {
+            model.addAttribute("error", "笔记不存在");
+            return "error";
         }
 
-        Query query = new Query().with(Sort.by(Sort.Direction.ASC, "version"));
+        NoteModel noteModel = new NoteModel();
+        noteModel.content = NoteConverter.convertNoteContentToHtml(note.content);
+        noteModel.ShareUrl = buildShareUrl(uid);
+        noteModel.thumbNail = note.thumbNail;
+        noteModel.title = note.title;
+        noteModel.type = note.type;
+        noteModel.uid = note.uid;
+        noteModel.updateTime = note.updateTime;
+        noteModel.userId = note.userId;
+
+        Query query = new Query().with(Sort.by(Sort.Direction.DESC, "version"));
 
         Apk apk = mongoTemplate.findOne(query, Apk.class);
 
@@ -61,7 +61,7 @@ public class NoteViewController {
 
         model.addAttribute("note", noteModel);
 
-        return "index";
+        return "noteDetail";
     }
 
 

@@ -2,6 +2,7 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <script src="http://api.html5media.info/1.1.8/html5media.min.js"></script>
 
     <style type="text/css">
         img {
@@ -43,14 +44,23 @@
 
     </style>
 
-    <title>首页</title>
+    <title th:text="${note.title}">首页</title>
 
 </head>
 
 <body>
 
-欢迎来到MiNote官方网站！
+<span th:utext="${note.content}"></span>
 
+
+<div th:if="${#strings.isEmpty(apkBase64)==false}" style="text-align: center; ">
+    <br>
+    <br>
+    <br>
+    <p class="qrcode_text">扫描下方二维码下载App制作笔记：</p>
+
+    <img class="qr_img" th:src="${apkBase64}"/>
+</div>
 
 </body>
 </html>

@@ -43,7 +43,17 @@ public class ApkController {
         if (StringUtils.isEmpty(userName) || StringUtils.isEmpty(userPwd)) {
             model.addAttribute("result", 0);
             model.addAttribute("msg", "用户验证失败！");
-            return "result";
+            return "uploadApkResult";
+        }
+        if (StringUtils.isEmpty(name)) {
+            model.addAttribute("result", 0);
+            model.addAttribute("msg", "app name不能为空！");
+            return "uploadApkResult";
+        }
+        if (StringUtils.isEmpty(version)) {
+            model.addAttribute("result", 0);
+            model.addAttribute("msg", "app version不能为空！");
+            return "uploadApkResult";
         }
 
         Query query = new Query();
@@ -54,26 +64,15 @@ public class ApkController {
         if (result == null) {
             model.addAttribute("result", 0);
             model.addAttribute("msg", "用户验证失败！");
-            return "result";
+            return "uploadApkResult";
         }
-
 
         ObjectId id = fileService.saveFile(fileMetaData);
 
         if (id == null || fileMetaData.isEmpty()) {
             model.addAttribute("result", 0);
             model.addAttribute("msg", "文件保存失败！");
-            return "result";
-        }
-        if (StringUtils.isEmpty(name)) {
-            model.addAttribute("result", 0);
-            model.addAttribute("msg", "app name不能为空！");
-            return "result";
-        }
-        if (StringUtils.isEmpty(version)) {
-            model.addAttribute("result", 0);
-            model.addAttribute("msg", "app version不能为空！");
-            return "result";
+            return "uploadApkResult";
         }
 
         Apk apk = new Apk();
@@ -89,7 +88,7 @@ public class ApkController {
         model.addAttribute("fileUrl", fileUrl);
         model.addAttribute("result", 1);
 
-        return "result";
+        return "uploadApkResult";
     }
 
     @ResponseBody

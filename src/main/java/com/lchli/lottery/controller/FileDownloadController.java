@@ -21,10 +21,10 @@ public class FileDownloadController {
     private FileService fileService;
 
 
-    @GetMapping(path = "/download/{filename}")
-    public ResponseEntity<Resource> downloadApkFile(@PathVariable("filename") final String filename) {
+    @GetMapping(path = "/download/{fileId}")
+    public ResponseEntity<Resource> downloadApkFile(@PathVariable("fileId") final String fileId) {
 
-        GridFsResource gridFsResource = fileService.getFile(filename);
+        GridFsResource gridFsResource = fileService.getFile(fileId);
         if (gridFsResource == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
