@@ -51,7 +51,7 @@ public class MavenWrapperDownloader {
     public static void main(String args[]) {
         System.out.println("- Downloader started");
         File baseDirectory = new File(args[0]);
-        System.out.println("- Using base directory: " + baseDirectory.getAbsolutePath());
+        System.out.println("- Using common directory: " + baseDirectory.getAbsolutePath());
 
         // If the maven-wrapper.properties exists, read it and check if it contains a custom
         // wrapperUrl parameter.

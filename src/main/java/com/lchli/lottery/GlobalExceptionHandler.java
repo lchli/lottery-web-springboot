@@ -1,6 +1,5 @@
 package com.lchli.lottery;
 
-import com.lchli.lottery.model.BaseResponse;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
