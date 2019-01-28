@@ -1,7 +1,5 @@
 package com.lchli.lottery.service;
 
-import com.lchli.lottery.model.BaseReponse;
-import com.lchli.lottery.util.Constants;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.gridfs.GridFSBucket;
 import com.mongodb.client.gridfs.GridFSBuckets;

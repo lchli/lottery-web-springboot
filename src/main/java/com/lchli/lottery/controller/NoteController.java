@@ -1,7 +1,7 @@
 package com.lchli.lottery.controller;
 
 
-import com.lchli.lottery.model.BaseReponse;
+import com.lchli.lottery.model.BaseResponse;
 import com.lchli.lottery.model.NoteModel;
 import com.lchli.lottery.model.QueryNoteResponse;
 import com.lchli.lottery.model.entity.Note;
@@ -36,16 +36,16 @@ public class NoteController {
 
     @ResponseBody
     @PostMapping(value = "/save", produces = {MediaType.APPLICATION_JSON_VALUE}, consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
-    public BaseReponse uploadNote(@RequestParam(value = "content", required = false) String content,
-                                  @RequestParam(value = "title", required = false) String title,
-                                  @RequestParam(value = "type", required = false) String type,
-                                  @RequestParam(value = "thumbNail", required = false) String thumbNail,
-                                  @RequestParam(value = "userId", required = false) String userId,
-                                  @RequestParam(value = "userToken", required = false) String userToken,
-                                  @RequestParam(value = "uid", required = false) String uid,
-                                  @RequestParam(value = "isPublic", required = false) String isPublic
+    public BaseResponse uploadNote(@RequestParam(value = "content", required = false) String content,
+                                   @RequestParam(value = "title", required = false) String title,
+                                   @RequestParam(value = "type", required = false) String type,
+                                   @RequestParam(value = "thumbNail", required = false) String thumbNail,
+                                   @RequestParam(value = "userId", required = false) String userId,
+                                   @RequestParam(value = "userToken", required = false) String userToken,
+                                   @RequestParam(value = "uid", required = false) String uid,
+                                   @RequestParam(value = "isPublic", required = false) String isPublic
     ) {
-        BaseReponse res = new BaseReponse();
+        BaseResponse res = new BaseResponse();
 
         try {
 
@@ -55,13 +55,13 @@ public class NoteController {
 
             User u = mongoTemplate.findOne(query, User.class);
             if (u == null) {
-                res.status = BaseReponse.RESPCODE_FAILE;
+                res.status = BaseResponse.RESPCODE_FAIL;
                 res.message = "用户token无效";
                 return res;
             }
 
             if (StringUtils.isEmpty(content) || StringUtils.isEmpty(title) || StringUtils.isEmpty(type)) {
-                res.status = BaseReponse.RESPCODE_FAILE;
+                res.status = BaseResponse.RESPCODE_FAIL;
                 res.message = "参数不合法";
                 return res;
             }
@@ -78,13 +78,13 @@ public class NoteController {
 
             mongoTemplate.save(note);
 
-            res.status = BaseReponse.RESPCODE_SUCCESS;
+            res.status = BaseResponse.RESPCODE_SUCCESS;
 
             return res;
 
         } catch (Throwable e) {
             e.printStackTrace();
-            res.status = BaseReponse.RESPCODE_FAILE;
+            res.status = BaseResponse.RESPCODE_FAIL;
             res.message = e.getMessage();
             return res;
         }
@@ -93,12 +93,12 @@ public class NoteController {
 
     @ResponseBody
     @PostMapping(value = "/like", produces = {MediaType.APPLICATION_JSON_VALUE}, consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
-    public BaseReponse likeNote(@RequestParam(value = "userToken", required = false) String userToken,
-                                @RequestParam(value = "noteId", required = false) String noteId,
-                                @RequestParam(value = "userId", required = false) String userId
+    public BaseResponse likeNote(@RequestParam(value = "userToken", required = false) String userToken,
+                                 @RequestParam(value = "noteId", required = false) String noteId,
+                                 @RequestParam(value = "userId", required = false) String userId
     ) {
 
-        BaseReponse res = new BaseReponse();
+        BaseResponse res = new BaseResponse();
 
         try {
 
@@ -108,14 +108,14 @@ public class NoteController {
 
             User u = mongoTemplate.findOne(query, User.class);
             if (u == null) {
-                res.status = BaseReponse.RESPCODE_FAILE;
+                res.status = BaseResponse.RESPCODE_FAIL;
                 res.message = "用户验证失败";
                 return res;
             }
 
             Note note = mongoTemplate.findById(noteId, Note.class);
             if (note == null) {
-                res.status = BaseReponse.RESPCODE_FAILE;
+                res.status = BaseResponse.RESPCODE_FAIL;
                 res.message = "笔记不存在";
                 return res;
             }
@@ -135,13 +135,13 @@ public class NoteController {
 
             mongoTemplate.save(note);
 
-            res.status = BaseReponse.RESPCODE_SUCCESS;
+            res.status = BaseResponse.RESPCODE_SUCCESS;
 
             return res;
 
         } catch (Throwable e) {
             e.printStackTrace();
-            res.status = BaseReponse.RESPCODE_FAILE;
+            res.status = BaseResponse.RESPCODE_FAIL;
             res.message = e.getMessage();
             return res;
         }
@@ -150,12 +150,12 @@ public class NoteController {
 
     @ResponseBody
     @PostMapping(value = "/delete", produces = {MediaType.APPLICATION_JSON_VALUE}, consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
-    public BaseReponse deleteNote(@RequestParam(value = "userToken", required = false) String userToken,
-                                  @RequestParam(value = "noteId", required = false) String noteId,
-                                  @RequestParam(value = "userId", required = false) String userId
+    public BaseResponse deleteNote(@RequestParam(value = "userToken", required = false) String userToken,
+                                   @RequestParam(value = "noteId", required = false) String noteId,
+                                   @RequestParam(value = "userId", required = false) String userId
     ) {
 
-        BaseReponse res = new BaseReponse();
+        BaseResponse res = new BaseResponse();
 
         try {
 
@@ -165,7 +165,7 @@ public class NoteController {
 
             User u = mongoTemplate.findOne(query, User.class);
             if (u == null) {
-                res.status = BaseReponse.RESPCODE_FAILE;
+                res.status = BaseResponse.RESPCODE_FAIL;
                 res.message = "用户验证失败";
                 return res;
             }
@@ -173,26 +173,26 @@ public class NoteController {
 
             Note note = mongoTemplate.findById(noteId, Note.class);
             if (note == null) {
-                res.status = BaseReponse.RESPCODE_FAILE;
+                res.status = BaseResponse.RESPCODE_FAIL;
                 res.message = "笔记不存在";
                 return res;
             }
 
             if (!userId.equals(note.userId)) {
-                res.status = BaseReponse.RESPCODE_FAILE;
+                res.status = BaseResponse.RESPCODE_FAIL;
                 res.message = "无权限";
                 return res;
             }
 
             mongoTemplate.remove(note);
 
-            res.status = BaseReponse.RESPCODE_SUCCESS;
+            res.status = BaseResponse.RESPCODE_SUCCESS;
 
             return res;
 
         } catch (Throwable e) {
             e.printStackTrace();
-            res.status = BaseReponse.RESPCODE_FAILE;
+            res.status = BaseResponse.RESPCODE_FAIL;
             res.message = e.getMessage();
             return res;
         }
@@ -201,23 +201,23 @@ public class NoteController {
 
     @ResponseBody
     @PostMapping(value = "/get", produces = {MediaType.APPLICATION_JSON_VALUE}, consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
-    public BaseReponse queryNote(@RequestParam(value = "title", required = false) String title,
-                                 @RequestParam(value = "type", required = false) String type,
-                                 @RequestParam(value = "userId", required = false) String userId,
-                                 @RequestParam(value = "uid", required = false) String uid,
-                                 @RequestParam(value = "page", required = false) int page,
-                                 @RequestParam(value = "pageSize", required = false) int pageSize,
-                                 @RequestParam(value = "sort", required = false) String sortArray,
-                                 @RequestParam(value = "isPublic", required = false) String isPublic) {
+    public BaseResponse queryNote(@RequestParam(value = "title", required = false) String title,
+                                  @RequestParam(value = "type", required = false) String type,
+                                  @RequestParam(value = "userId", required = false) String userId,
+                                  @RequestParam(value = "uid", required = false) String uid,
+                                  @RequestParam(value = "page", required = false) int page,
+                                  @RequestParam(value = "pageSize", required = false) int pageSize,
+                                  @RequestParam(value = "sort", required = false) String sortArray,
+                                  @RequestParam(value = "isPublic", required = false) String isPublic) {
 
         QueryNoteResponse res = new QueryNoteResponse();
-        res.status = BaseReponse.RESPCODE_SUCCESS;
+        res.status = BaseResponse.RESPCODE_SUCCESS;
         res.data = new ArrayList<>();
 
         try {
 
             if (page < 0 || pageSize <= 0) {
-                res.status = BaseReponse.RESPCODE_FAILE;
+                res.status = BaseResponse.RESPCODE_FAIL;
                 res.message = "参数不合法";
                 return res;
             }
@@ -306,7 +306,7 @@ public class NoteController {
 
         } catch (Throwable e) {
             e.printStackTrace();
-            res.status = BaseReponse.RESPCODE_FAILE;
+            res.status = BaseResponse.RESPCODE_FAIL;
             res.message = e.getMessage();
             return res;
         }

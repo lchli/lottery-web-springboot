@@ -18,8 +18,8 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import static com.lchli.lottery.model.BaseReponse.RESPCODE_FAILE;
-import static com.lchli.lottery.model.BaseReponse.RESPCODE_SUCCESS;
+import static com.lchli.lottery.model.BaseResponse.RESPCODE_FAIL;
+import static com.lchli.lottery.model.BaseResponse.RESPCODE_SUCCESS;
 
 @Controller
 @RequestMapping("api/public/apk")
@@ -109,7 +109,7 @@ public class ApkController {
             }
         }
 
-        apkResponse.status = RESPCODE_FAILE;
+        apkResponse.status = RESPCODE_FAIL;
         apkResponse.message = "暂无更新";
 
         return apkResponse;

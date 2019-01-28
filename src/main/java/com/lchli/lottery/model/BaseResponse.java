@@ -1,8 +1,8 @@
 package com.lchli.lottery.model;
 
-public class BaseReponse {
+public class BaseResponse {
     public static final int RESPCODE_SUCCESS=1;
-    public static final int RESPCODE_FAILE=2;
+    public static final int RESPCODE_FAIL =2;
 
     public int status;
     public String message;

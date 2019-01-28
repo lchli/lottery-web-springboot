@@ -9,4 +9,5 @@ public interface UserRepo extends MongoRepository<User,String> {
 
     User findByName(String name);
     User findByNameAndPwd(String name,String pwd);
+    User findByUidAndToken(String uid,String token);
 }
