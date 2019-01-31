@@ -1,9 +1,10 @@
 package com.lchli.lottery.user.controller;
 
 import com.lchli.lottery.BaseResponse;
+import com.lchli.lottery.user.UserModelMapper;
 import com.lchli.lottery.user.model.UserResponse;
-import com.lchli.lottery.user.repo.entity.User;
 import com.lchli.lottery.user.repo.UserRepo;
+import com.lchli.lottery.user.repo.entity.User;
 import com.lchli.lottery.util.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -49,9 +50,8 @@ public class UserController {
 
         userRepo.save(user);
 
-        user.pwd = null;
         response.status = BaseResponse.RESPCODE_SUCCESS;
-        response.data = user;
+        response.data = UserModelMapper.toUserModel(user);
 
         return response;
 
@@ -59,26 +59,26 @@ public class UserController {
 
     @PostMapping(path = "/update", produces = {MediaType.APPLICATION_JSON_VALUE}, consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
     public UserResponse update(@RequestParam(value = "userPwd", required = false) String pwd,
-                               @RequestParam(value = "userId", required = false) String userId,
-                               @RequestParam(value = "token", required = false) String token,
+                               @RequestParam(value = "sessionUserId", required = false) String sessionUserId,
+                               @RequestParam(value = "sessionUserToken", required = false) String sessionUserToken,
                                @RequestParam(value = "userHeadUrl", required = false) String userHeadUrl,
                                @RequestParam(value = "userContact", required = false) String userContact) {
 
         UserResponse response = new UserResponse();
         response.status = BaseResponse.RESPCODE_FAIL;
 
-        if (Utils.isEmpty(userId) || Utils.isEmpty(token)) {
+        if (Utils.isEmpty(sessionUserId) || Utils.isEmpty(sessionUserToken)) {
             response.message = "参数错误";
             return response;
         }
 
-        User user = userRepo.findById(userId).orElse(null);
+        User user = userRepo.findById(sessionUserId).orElse(null);
         if (user == null) {
             response.message = "用户名不存在";
             return response;
         }
 
-        if (!token.equals(user.token)) {
+        if (!sessionUserToken.equals(user.token)) {
             response.message = "token无效";
             return response;
         }
@@ -97,9 +97,8 @@ public class UserController {
 
         userRepo.save(user);
 
-        user.pwd = null;//do not save pwd to app.
         response.status = BaseResponse.RESPCODE_SUCCESS;
-        response.data = user;
+        response.data = UserModelMapper.toUserModel(user);
 
         return response;
 
@@ -127,10 +126,8 @@ public class UserController {
 
         userRepo.save(user);
 
-        user.pwd = null;
-
         response.status = BaseResponse.RESPCODE_SUCCESS;
-        response.data = user;
+        response.data = UserModelMapper.toUserModel(user);
 
         return response;
 
@@ -138,8 +135,8 @@ public class UserController {
 
     @GetMapping(path = "/findById", produces = {MediaType.APPLICATION_JSON_VALUE})
     public UserResponse findById(@RequestParam(value = "userId", defaultValue = "") String userId,
-                                 @RequestParam(value = "token", defaultValue = "") String token,
-                                 @RequestParam(value = "currentUserId", defaultValue = "") String currentUserId
+                                 @RequestParam(value = "sessionUserToken", defaultValue = "") String token,
+                                 @RequestParam(value = "sessionUserId", defaultValue = "") String currentUserId
     ) {
 
         UserResponse response = new UserResponse();
@@ -172,10 +169,8 @@ public class UserController {
             return response;
         }
 
-        user.pwd = null;
-
         response.status = BaseResponse.RESPCODE_SUCCESS;
-        response.data = user;
+        response.data = UserModelMapper.toUserModel(user);
 
         return response;
 

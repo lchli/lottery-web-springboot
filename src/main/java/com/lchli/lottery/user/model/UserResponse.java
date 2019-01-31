@@ -5,6 +5,6 @@ import com.lchli.lottery.user.repo.entity.User;
 
 public class UserResponse extends BaseResponse {
 
-    public User data;
+    public UserModel data;
 
 }
