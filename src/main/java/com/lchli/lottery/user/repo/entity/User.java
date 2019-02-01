@@ -20,5 +20,6 @@ public class User {
     public String token;
     public String headUrl;
     public String userContact;
+    public String userNick;
     public Set<String> roles;
 }

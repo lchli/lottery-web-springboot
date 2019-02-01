@@ -13,5 +13,7 @@ public class NoteModel {
     public String userName;
     public long updateTime;
     public List<String> star;
+    public String isPublic;
+    public String shareUrl;
 
 }

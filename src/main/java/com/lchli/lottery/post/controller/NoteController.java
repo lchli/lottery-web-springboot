@@ -4,8 +4,10 @@ package com.lchli.lottery.post.controller;
 import com.lchli.lottery.BaseResponse;
 import com.lchli.lottery.post.model.NoteModel;
 import com.lchli.lottery.post.model.QueryNoteResponse;
+import com.lchli.lottery.post.model.SingleNoteResponse;
 import com.lchli.lottery.post.repo.entity.Note;
 import com.lchli.lottery.user.repo.entity.User;
+import com.lchli.lottery.util.Constants;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,16 +40,18 @@ public class NoteController {
     public BaseResponse uploadNote(@RequestParam(value = "content", required = false) String content,
                                    @RequestParam(value = "title", required = false) String title,
                                    @RequestParam(value = "type", required = false) String type,
-                                   @RequestParam(value = "userId", required = false) String userId,
-                                   @RequestParam(value = "userToken", required = false) String userToken,
-                                   @RequestParam(value = "uid", required = false) String uid
+                                   @RequestParam(value = "sessionUserId", required = false) String userId,
+                                   @RequestParam(value = "sessionUserToken", required = false) String userToken,
+                                   @RequestParam(value = "uid", required = false) String uid,
+                                   @RequestParam(value = "isPublic", defaultValue = Note.PUBLIC_FALSE) String isPublic
 
     ) {
 
         BaseResponse res = new BaseResponse();
         res.status = BaseResponse.RESPCODE_FAIL;
 
-        if (StringUtils.isEmpty(content) || StringUtils.isEmpty(title) || StringUtils.isEmpty(type)) {
+        if (StringUtils.isEmpty(content) || StringUtils.isEmpty(title) || StringUtils.isEmpty(type) ||
+                StringUtils.isEmpty(userId) || StringUtils.isEmpty(userToken)) {
             res.message = "参数不合法";
             return res;
         }
@@ -70,6 +74,11 @@ public class NoteController {
         note.updateTime = System.currentTimeMillis();
         note.userId = userId;
 
+        if (!isPublic.equals(Note.PUBLIC_TRUE)) {
+            isPublic = Note.PUBLIC_FALSE;
+        }
+        note.isPublic = isPublic;
+
         mongoTemplate.save(note);
 
         res.status = BaseResponse.RESPCODE_SUCCESS;
@@ -82,13 +91,18 @@ public class NoteController {
 
     @ResponseBody
     @PostMapping(value = "/likeOrUnLike", produces = {MediaType.APPLICATION_JSON_VALUE}, consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
-    public BaseResponse likeNote(@RequestParam(value = "userToken", required = false) String userToken,
-                                 @RequestParam(value = "noteId", required = false) String noteId,
-                                 @RequestParam(value = "userId", required = false) String userId
+    public SingleNoteResponse likeNote(@RequestParam(value = "sessionUserToken", required = false) String userToken,
+                                       @RequestParam(value = "noteId", required = false) String noteId,
+                                       @RequestParam(value = "sessionUserId", required = false) String userId
     ) {
 
-        BaseResponse res = new BaseResponse();
+        SingleNoteResponse res = new SingleNoteResponse();
         res.status = BaseResponse.RESPCODE_FAIL;
+
+        if (StringUtils.isEmpty(userId) || StringUtils.isEmpty(userToken)) {
+            res.message = "参数不合法";
+            return res;
+        }
 
         Query query = new Query();
         query.addCriteria(Criteria.where("uid").is(userId));
@@ -96,7 +110,7 @@ public class NoteController {
 
         User u = mongoTemplate.findOne(query, User.class);
         if (u == null) {
-            res.message = "用户验证失败";
+            res.message = "用户token无效";
             return res;
         }
 
@@ -122,6 +136,7 @@ public class NoteController {
         mongoTemplate.save(note);
 
         res.status = BaseResponse.RESPCODE_SUCCESS;
+        res.data = NoteModelMapper.toModel(note, mongoTemplate);
 
         return res;
 
@@ -129,14 +144,72 @@ public class NoteController {
 
 
     @ResponseBody
-    @PostMapping(value = "/delete", produces = {MediaType.APPLICATION_JSON_VALUE}, consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
-    public BaseResponse deleteNote(@RequestParam(value = "userToken", required = false) String userToken,
+    @PostMapping(value = "/publicOrUnPublic", produces = {MediaType.APPLICATION_JSON_VALUE}, consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
+    public BaseResponse publicNote(@RequestParam(value = "sessionUserToken", required = false) String userToken,
                                    @RequestParam(value = "noteId", required = false) String noteId,
-                                   @RequestParam(value = "userId", required = false) String userId
+                                   @RequestParam(value = "sessionUserId", required = false) String userId
+    ) {
+
+        SingleNoteResponse res = new SingleNoteResponse();
+        res.status = BaseResponse.RESPCODE_FAIL;
+
+        if (StringUtils.isEmpty(userId) || StringUtils.isEmpty(userToken)) {
+            res.message = "参数不合法";
+            return res;
+        }
+
+        Query query = new Query();
+        query.addCriteria(Criteria.where("uid").is(userId));
+        query.addCriteria(Criteria.where("token").is(userToken));
+
+        User u = mongoTemplate.findOne(query, User.class);
+        if (u == null) {
+            res.message = "用户验证失败";
+            return res;
+        }
+
+        Note note = mongoTemplate.findById(noteId, Note.class);
+        if (note == null) {
+            res.message = "笔记不存在";
+            return res;
+        }
+
+        if (!userId.equals(note.userId)) {
+            res.message = "无权限";
+            return res;
+        }
+
+        if (Note.PUBLIC_TRUE.equals(note.isPublic)) {
+            note.isPublic = Note.PUBLIC_FALSE;
+        } else {
+            note.isPublic = Note.PUBLIC_TRUE;
+        }
+
+        mongoTemplate.save(note);
+
+        res.data = NoteModelMapper.toModel(note, mongoTemplate);
+        res.status = BaseResponse.RESPCODE_SUCCESS;
+
+        return res;
+
+
+    }
+
+
+    @ResponseBody
+    @PostMapping(value = "/delete", produces = {MediaType.APPLICATION_JSON_VALUE}, consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
+    public BaseResponse deleteNote(@RequestParam(value = "sessionUserToken", required = false) String userToken,
+                                   @RequestParam(value = "noteId", required = false) String noteId,
+                                   @RequestParam(value = "sessionUserId", required = false) String userId
     ) {
 
         BaseResponse res = new BaseResponse();
         res.status = BaseResponse.RESPCODE_FAIL;
+
+        if (StringUtils.isEmpty(userId) || StringUtils.isEmpty(userToken)) {
+            res.message = "参数不合法";
+            return res;
+        }
 
         Query query = new Query();
         query.addCriteria(Criteria.where("uid").is(userId));
@@ -173,31 +246,54 @@ public class NoteController {
     @PostMapping(value = "/get", produces = {MediaType.APPLICATION_JSON_VALUE}, consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
     public BaseResponse queryNotes(@RequestParam(value = "title", required = false) String title,
                                    @RequestParam(value = "type", required = false) String type,
-                                   @RequestParam(value = "userId", required = false) String userId,
                                    @RequestParam(value = "uid", required = false) String uid,
                                    @RequestParam(value = "page", required = false) int page,
                                    @RequestParam(value = "pageSize", required = false) int pageSize,
-                                   @RequestParam(value = "sort", required = false) String sortArray
+                                   @RequestParam(value = "sort", required = false) String sortArray,
+                                   @RequestParam(value = "sessionUserToken", required = false) String sessionUserToken,
+                                   @RequestParam(value = "sessionUserId", required = false) String sessionUserId,
+                                   @RequestParam(value = "ownerUserId", required = false) String ownerUserId
     ) {
 
         QueryNoteResponse res = new QueryNoteResponse();
-        res.status = BaseResponse.RESPCODE_SUCCESS;
+        res.status = BaseResponse.RESPCODE_FAIL;
         res.data = new ArrayList<>();
 
         if (page < 0 || pageSize <= 0) {
-            res.status = BaseResponse.RESPCODE_FAIL;
             res.message = "参数不合法";
             return res;
         }
 
         Query query = new Query();
 
+        if (!StringUtils.isEmpty(ownerUserId)) {
+
+            if (ownerUserId.equals(sessionUserId)) {
+                Query userQ = new Query();
+                userQ.addCriteria(Criteria.where("uid").is(sessionUserId));
+                userQ.addCriteria(Criteria.where("token").is(sessionUserToken));
+
+                User u = mongoTemplate.findOne(userQ, User.class);
+                if (u == null) {
+                    res.message = "用户token无效";
+                    return res;
+                }
+
+            } else {
+                query.addCriteria(Criteria.where("isPublic").is(Note.PUBLIC_TRUE));
+            }
+
+        } else {
+            query.addCriteria(Criteria.where("isPublic").is(Note.PUBLIC_TRUE));
+        }
+
+
         if (!StringUtils.isEmpty(uid)) {
             query.addCriteria(Criteria.where("uid").is(uid));
         }
 
-        if (!StringUtils.isEmpty(userId)) {
-            query.addCriteria(Criteria.where("userId").is(userId));
+        if (!StringUtils.isEmpty(ownerUserId)) {
+            query.addCriteria(Criteria.where("userId").is(ownerUserId));
         }
 
         if (!StringUtils.isEmpty(type)) {
@@ -244,25 +340,12 @@ public class NoteController {
 
         if (notes != null && !notes.isEmpty()) {
             for (Note note : notes) {
-                NoteModel noteModel = new NoteModel();
-                noteModel.content = note.content;
-                noteModel.title = note.title;
-                noteModel.type = note.type;
-                noteModel.uid = note.uid;
-                noteModel.updateTime = note.updateTime;
-                noteModel.userId = note.userId;
-                noteModel.star = note.star;
+                res.data.add(NoteModelMapper.toModel(note, mongoTemplate));
 
-                User user = mongoTemplate.findById(note.userId + "", User.class);
-                if (user != null) {
-                    noteModel.userHeadUrl = user.headUrl;
-                    noteModel.userName = user.name;
-                }
-
-                res.data.add(noteModel);
             }
         }
 
+        res.status = BaseResponse.RESPCODE_SUCCESS;
 
         return res;
 

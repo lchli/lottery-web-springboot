@@ -1,6 +1,7 @@
 package com.lchli.lottery.apk;
 
 import com.lchli.lottery.apk.entity.Apk;
+import com.lchli.lottery.apk.model.ApkModel;
 import com.lchli.lottery.apk.model.ApkResponse;
 import com.lchli.lottery.file.service.FileService;
 import com.lchli.lottery.user.repo.entity.Admin;
@@ -22,7 +23,6 @@ import static com.lchli.lottery.BaseResponse.RESPCODE_FAIL;
 import static com.lchli.lottery.BaseResponse.RESPCODE_SUCCESS;
 
 @Controller
-@RequestMapping("api/public/apk")
 public class ApkController {
 
     @Autowired
@@ -32,7 +32,7 @@ public class ApkController {
     private MongoTemplate mongoTemplate;
 
 
-    @PostMapping(path = "/upload", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    @PostMapping(path = "api/public/apk/upload", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public String uploadFile(@RequestParam("file") MultipartFile fileMetaData,
                              @RequestParam(value = "name", required = false) String name,
                              @RequestParam(value = "version", required = false) int version,
@@ -56,12 +56,24 @@ public class ApkController {
             return "uploadApkResult";
         }
 
-        Query query = new Query();
-        query.addCriteria(Criteria.where("name").is(userName));
-        query.addCriteria(Criteria.where("pwd").is(userPwd));
+        if (fileMetaData.isEmpty()) {
+            model.addAttribute("result", 0);
+            model.addAttribute("msg", "文件不能为空！");
+            return "uploadApkResult";
+        }
 
-        Admin result = mongoTemplate.findOne(query, Admin.class);
-        if (result == null) {
+//        Query query = new Query();
+//        query.addCriteria(Criteria.where("name").is(userName));
+//        query.addCriteria(Criteria.where("pwd").is(userPwd));
+//
+//        Admin result = mongoTemplate.findOne(query, Admin.class);
+//        if (result == null) {
+//            model.addAttribute("result", 0);
+//            model.addAttribute("msg", "用户验证失败！");
+//            return "uploadApkResult";
+//        }
+
+        if (!userName.equals("lchli") || !userPwd.equals("878266")) {
             model.addAttribute("result", 0);
             model.addAttribute("msg", "用户验证失败！");
             return "uploadApkResult";
@@ -69,7 +81,7 @@ public class ApkController {
 
         ObjectId id = fileService.saveFile(fileMetaData);
 
-        if (id == null || fileMetaData.isEmpty()) {
+        if (id == null) {
             model.addAttribute("result", 0);
             model.addAttribute("msg", "文件保存失败！");
             return "uploadApkResult";
@@ -92,8 +104,8 @@ public class ApkController {
     }
 
     @ResponseBody
-    @GetMapping(path = "/update")
-    public ApkResponse uploadFile(@RequestParam(value = "currentVersionCode", required = false) int currentVersionCode
+    @GetMapping(path = "api/sec/apk/update")
+    public ApkResponse checkApkUpdate(@RequestParam(value = "currentVersionCode", required = false) int currentVersionCode
     ) {
         ApkResponse apkResponse = new ApkResponse();
         apkResponse.status = RESPCODE_SUCCESS;
@@ -105,6 +117,13 @@ public class ApkController {
         if (apk != null) {
 
             if (apk.version > currentVersionCode) {
+                ApkModel model = new ApkModel();
+                model.name = apk.name;
+                model.version = apk.version;
+                model.apkUrl = Utils.buildFileDownloadUrl(apk.fileId);
+
+                apkResponse.data = model;
+
                 return apkResponse;
             }
         }
@@ -116,7 +135,7 @@ public class ApkController {
     }
 
 
-    @GetMapping("/upload")
+    @GetMapping("view/public/apk/upload")
     public String uploadApk() {
         return "uploadApk";
     }

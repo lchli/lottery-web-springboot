@@ -23,7 +23,8 @@ public class UserController {
     public UserResponse register(@RequestParam(value = "userName", required = false) String name,
                                  @RequestParam(value = "userPwd", required = false) String pwd,
                                  @RequestParam(value = "userHeadUrl", required = false) String userHeadUrl,
-                                 @RequestParam(value = "userContact", required = false) String userContact
+                                 @RequestParam(value = "userContact", required = false) String userContact,
+                                 @RequestParam(value = "userNick", required = false) String userNick
     ) {
 
         UserResponse response = new UserResponse();
@@ -47,6 +48,7 @@ public class UserController {
         user.uid = Utils.uuid();
         user.headUrl = userHeadUrl;
         user.userContact = userContact;
+        user.userNick = userNick;
 
         userRepo.save(user);
 
@@ -62,7 +64,9 @@ public class UserController {
                                @RequestParam(value = "sessionUserId", required = false) String sessionUserId,
                                @RequestParam(value = "sessionUserToken", required = false) String sessionUserToken,
                                @RequestParam(value = "userHeadUrl", required = false) String userHeadUrl,
-                               @RequestParam(value = "userContact", required = false) String userContact) {
+                               @RequestParam(value = "userContact", required = false) String userContact,
+                               @RequestParam(value = "userNick", required = false) String userNick
+    ) {
 
         UserResponse response = new UserResponse();
         response.status = BaseResponse.RESPCODE_FAIL;
@@ -93,6 +97,9 @@ public class UserController {
 
         if (!StringUtils.isEmpty(userContact)) {
             user.userContact = userContact;
+        }
+        if (!StringUtils.isEmpty(userNick)) {
+            user.userNick = userNick;
         }
 
         userRepo.save(user);
