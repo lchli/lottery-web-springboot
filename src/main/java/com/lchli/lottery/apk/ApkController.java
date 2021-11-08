@@ -135,9 +135,9 @@ public class ApkController {
     }
 
 
-    @GetMapping("view/public/apk/upload")
+    @GetMapping("/upload")
     public String uploadApk() {
-        return "uploadApk";
+        return "index";
     }
 
 }
